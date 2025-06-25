@@ -1,17 +1,12 @@
 let pageContent = "";
 let contentLoaded = false;
 
-// Ask main page for content after DOM is ready
-window.addEventListener("DOMContentLoaded", () => {
-  window.parent.postMessage("get-page-content", "*");
-});
-
-// Receive page content only once
-window.addEventListener("message", (event) => {
-  if (event.data?.type === "page-content" && !contentLoaded) {
-    pageContent = event.data.content;
+// Ask content script for page content using runtime message
+chrome.runtime.sendMessage({ type: "get-page-content" }, (response) => {
+  if (response?.content) {
+    pageContent = response.content;
     contentLoaded = true;
-    console.log("✅ Page content loaded");
+    console.log("✅ Page content received");
   }
 });
 
@@ -42,7 +37,11 @@ document.getElementById("ask-btn").addEventListener("click", async () => {
           },
           {
             role: "user",
-            content: `Page content:\n${pageContent.slice(0, 6000)}\n\nQuestion:\n${question}`
+            content: `Page content:
+${pageContent.slice(0, 6000)}
+
+Question:
+${question}`
           }
         ]
       })

@@ -1,22 +1,4 @@
-// Prevent duplicate listener
-if (!window.hasAddedAskAIListener) {
-  window.hasAddedAskAIListener = true;
-
-  window.addEventListener("message", (event) => {
-    if (event.data === "get-page-content") {
-      const sidebarIframe = document.getElementById("ask-ai-sidebar");
-      if (sidebarIframe && sidebarIframe.contentWindow) {
-        const text = document.body?.innerText || "";
-        sidebarIframe.contentWindow.postMessage({
-          type: "page-content",
-          content: text.slice(0, 6000)
-        }, "*");
-      }
-    }
-  });
-
-  // Inject sidebar UI (your existing code to create the sidebar)
-  if (!document.getElementById("ask-ai-sidebar-container")) {
+if (!document.getElementById("ask-ai-sidebar-container")) {
   const container = document.createElement("div");
   container.id = "ask-ai-sidebar-container";
   container.style.position = "fixed";
@@ -31,7 +13,6 @@ if (!window.hasAddedAskAIListener) {
   container.style.boxShadow = "-2px 0 10px rgba(0,0,0,0.3)";
   container.style.transition = "width 0.1s ease-out";
 
-  // === Close button ===
   const closeBtn = document.createElement("div");
   closeBtn.textContent = "✖";
   closeBtn.title = "Close";
@@ -66,7 +47,6 @@ if (!window.hasAddedAskAIListener) {
   container.appendChild(closeBtn);
   document.body.appendChild(container);
 
-  // === Resize logic stays the same ===
   let resizing = false;
 
   const onPointerDown = (e) => {
@@ -97,4 +77,10 @@ if (!window.hasAddedAskAIListener) {
   resizer.addEventListener("pointerup", onPointerUp);
 }
 
-}
+// Chrome messaging to handle content request
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "get-page-content") {
+    const content = document.body.innerText || "";
+    sendResponse({ content });
+  }
+});
